@@ -1,0 +1,143 @@
+#include <Arduino.h>
+#include <ESP8266WiFi.h>
+#include <FirebaseESP8266.h>
+#include <DHT.h>
+#include <SoftwareSerial.h>
+SoftwareSerial mySerial(3, 1);
+
+// WiFi credentials
+#define WIFI_SSID "your-ssid-name"
+#define WIFI_PASSWORD "your-password"
+
+// Firebase credentials
+#define API_KEY "your-firebase-web-api-key"
+#define USER_EMAIL "email-id"
+#define USER_PASSWORD "password"
+#define DATABASE_URL "your-db-url"
+
+// DHT sensor pin and type
+#define DHTPIN 2
+#define DHTTYPE DHT11
+#define PUMP_PIN 0
+// Soil moisture sensor pin
+#define SOIL_MOISTURE_PIN A0
+
+// Firebase project database URL
+#define FIREBASE_DB_URL "your-db-url"
+
+// Initialize Firebase
+FirebaseAuth auth;
+FirebaseConfig config;
+FirebaseData firebaseData;
+
+// Initialize DHT sensor
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+    Serial.begin(115200);
+
+    pinMode(PUMP_PIN, OUTPUT);  // Set pump pin as output
+    digitalWrite(PUMP_PIN, HIGH);
+
+    // Connect to Wi-Fi
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    Serial.print("Connecting to Wi-Fi");
+    while (WiFi.status() != WL_CONNECTED) {
+        Serial.print(".");
+        delay(500);
+    }
+    Serial.println("Connected!");
+
+    // Assign API key
+    config.api_key = API_KEY;
+
+    // Assign user sign-in credentials
+    auth.user.email = USER_EMAIL;
+    auth.user.password = USER_PASSWORD;
+
+    // Assign the RTDB URL
+    config.database_url = DATABASE_URL;
+
+    // Initialize Firebase
+    Firebase.begin(&config, &auth);
+
+    Serial.println("Firebase initialized!");
+
+    // Initialize DHT sensor
+    dht.begin();
+    mySerial.begin(115200);
+   
+}
+
+void loop() {
+
+    mySerial.println("AT+CMGF=1");
+    delay(1000);
+    mySerial.println("AT+CMGS=\"xxxxxxxxxx\"");\\include country code
+    delay(1000);
+   
+    if (Firebase.ready()) {
+        // Read temperature and humidity from DHT sensor
+        float temperature = dht.readTemperature();
+        float humidity = dht.readHumidity();
+
+        // Read soil moisture
+        int soilMoisture = analogRead(SOIL_MOISTURE_PIN);
+      
+
+        // Send data to Firebase
+         if (Firebase.setFloat(firebaseData,"/Temp", temperature)){
+          Serial.println("passed");
+         }else{
+            Serial.println("failed");
+         }
+         if (Firebase.setFloat(firebaseData,"/Hum", humidity)){
+          Serial.println("passed");
+         }else{
+            Serial.println("failed");
+         }
+         if (Firebase.setFloat(firebaseData,"/Soil", soilMoisture)){
+          Serial.println("passed");
+         }else{
+            Serial.println("failed");
+         }
+        Serial.println("Data sent to Firebase successfully!");
+        
+        if (Firebase.getString(firebaseData, "/pump")) {
+            String pumpState = firebaseData.to<String>();
+            Serial.print("Pump state: ");
+            Serial.println(pumpState);
+
+            // Control pump based on state
+            if (pumpState == "0") {
+                digitalWrite(PUMP_PIN, HIGH);  // Turn off pump
+                Serial.println("Pump turned off!");
+                sendSMS("Motor OFF");
+            } else if (pumpState == "1") {
+                digitalWrite(PUMP_PIN, LOW);  // Turn on pump
+                Serial.println("Pump turned on!");
+                sendSMS("Motor ON");
+                delay(30000);
+                digitalWrite(PUMP_PIN,HIGH);
+            } else {
+                Serial.println("Invalid pump state received!");
+            }
+        } else {
+            Serial.println("Firebase error:");
+            Serial.println(firebaseData.errorReason());
+        }
+    } else {
+        Serial.println("Firebase not ready!");
+    }
+
+    // Delay before next reading
+    delay(2000);
+}
+
+void sendSMS(String message) {
+  mySerial.print(message);
+  delay(100);
+  mySerial.write((char)26);
+  delay(100);
+  mySerial.println();
+}
