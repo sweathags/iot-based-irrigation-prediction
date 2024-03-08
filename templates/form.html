@@ -1,0 +1,128 @@
+<!-- form.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Irrigation Prediction</title>
+  </head>
+
+  <body>
+    <div class="h-screen flex flex-col items-center justify-center">
+      <h1 class="pt-6 pb-5 font-bold text-2xl text-gray-600">
+        Irrigation Prediction
+      </h1>
+
+      <form
+        action="/"
+        method="post"
+        class="max-w-screen-lg mt-7 mb-2 w-80 sm:w-96"
+      >
+        <div class="flex flex-col gap-1 mb-5">
+          <label for="CropType" class="text-indigo-600 font-semibold text-lg"
+            >CropType</label
+          >
+          <select
+            id="CropType"
+            name="CropType"
+            class="focus:outline-none ring-2 focus:ring-3 focus:ring-indigo-500 ring-offset-0 border-0 rounded-sm shadow-sm ring-gray-200 text-gray-700 py-0.5"
+          >
+            <option value="Wheat">Wheat</option>
+            <option value="Groundnuts">Groundnuts</option>
+            <option value="Garden Flowers">Garden Flowers</option>
+            <option value="Maize">Maize</option>
+            <option value="Paddy">Paddy</option>
+            <option value="Potato">Potato</option>
+            <option value="Pulse">Pulse</option>
+            <option value="Sugarcane">Sugarcane</option>
+            <option value="Coffee">Coffee</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1 mb-5">
+          <label for="CropDays" class="text-indigo-600 font-semibold text-lg"
+            >CropDays</label
+          >
+          <input
+            type="number"
+            id="CropDays"
+            name="CropDays"
+            class="focus:outline-none ring-2 focus:ring-3 focus:ring-indigo-500 ring-offset-0 border-0 rounded-sm shadow-sm ring-gray-200 text-gray-700"
+            required
+          />
+        </div>
+
+        <div class="flex flex-col gap-1 mb-5">
+          <label
+            for="SoilMoisture"
+            class="text-indigo-600 font-semibold text-lg"
+            >SoilMoisture</label
+          >
+          <input
+            type="number"
+            id="SoilMoisture"
+            name="SoilMoisture"
+            class="focus:outline-none ring-2 focus:ring-3 focus:ring-indigo-500 ring-offset-0 border-0 rounded-sm shadow-sm ring-gray-200 text-gray-700"
+            required
+            value="{{ soil }}"
+          />
+        </div>
+        <div class="flex flex-col gap-1 mb-5">
+          <label for="temperature" class="text-indigo-600 font-semibold text-lg"
+            >Temperature</label
+          >
+          <input
+            type="number"
+            id="temperature"
+            name="temperature"
+            class="focus:outline-none ring-2 focus:ring-3 focus:ring-indigo-500 ring-offset-0 border-0 rounded-sm shadow-sm ring-gray-200 text-gray-700"
+            required
+            value="{{ temp }}"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1 mb-5">
+          <label for="Humidity" class="text-indigo-600 font-semibold text-lg"
+            >Humidity</label
+          >
+          <input
+            type="number"
+            id="Humidity"
+            name="Humidity"
+            class="focus:outline-none ring-2 focus:ring-3 focus:ring-indigo-500 ring-offset-0 border-0 rounded-sm shadow-sm ring-gray-200 text-gray-700"
+            required
+            value="{{ hum }}"
+          />
+        </div>
+
+        <div class="flex justify-around">
+          <input
+            type="submit"
+            value="Submit"
+            class="submit-button rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 w-20"
+          />
+
+          <button
+            type="button"
+            onclick="location.href='/'"
+            class="submit-button rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 w-20"
+          >
+            Back
+          </button>
+        </div>
+      </form>
+      <!-- Render prediction-->
+      {% if prediction is not none%}
+      <h2 class="text-indigo-600 font-bold text-xl p-2">
+        Prediction: {{ prediction }}
+      </h2>
+        {% if prediction == 0 %}
+        <h2 class="text-indigo-600 font-bold text-xl p-2">Motor Pump is OFF.</h2>
+        {% elif prediction == 1: %}
+        <h2 class="text-indigo-600 font-bold text-xl p-2">Motor Pump is ON.</h2>
+        {% endif %}
+      {% endif %}
+    </div>
+  </body>
+</html>
